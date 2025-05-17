@@ -12,7 +12,9 @@ interface UserPageProps {
     };
 }
 
-const UserPage = async ({ params }: UserPageProps) => {
+const UserPage = async (props: UserPageProps) => {
+    const params = await props.params;
+    
     const { username } = params;
     const user = await getUserByUsername(username);
     if (!user) {
@@ -32,7 +34,7 @@ const UserPage = async ({ params }: UserPageProps) => {
             </div>
         );
     }
-
+    
     return(
         // <div className="flex flex-col justify-center w-full h-full gap-y-4">
         //     <p>username: {user.username}</p>
