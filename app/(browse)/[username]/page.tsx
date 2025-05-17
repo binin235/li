@@ -7,15 +7,17 @@ import { isBlockedByUser } from "@/lib/block-service";
 import { StreamPlayer } from "@/components/stream-player";
 
 interface UserPageProps {
-    params: {
+    params: Promise<{
         username: string;
-    };
+    }>;
 }
 
+
 const UserPage = async (props: UserPageProps) => {
-    const params = await props.params;
-    
-    const { username } = params;
+    // 1. Await props.params để nhận được object params thực sự
+    const resolvedParams = await props.params;
+    const { username } = resolvedParams; // Lấy username từ object đã được giải quyết
+
     const user = await getUserByUsername(username);
     if (!user) {
         notFound();
