@@ -1,21 +1,34 @@
 import { StreamPlayer } from "@/components/stream-player";
 import { getUserByUsername } from "@/lib/user-service";
 import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation"; // Thêm import này nếu bạn muốn dùng notFound()
 
 interface CreatorPageProps {
-    params: {
+    params: Promise<{ // <<< THAY ĐỔI 1: params là một Promise
         username: string;
-    };
-
+    }>;
 }
 
-const CreatorPage = async ({
-    params,
-}: CreatorPageProps) => {
-    const externalUser = await currentUser();
-    const user = await getUserByUsername(params.username);
-    if (!user || user.externalUserId !== externalUser?.id || !user.stream) {
-        throw new Error("Unauthorized");
+const CreatorPage = async (props: CreatorPageProps) => { // Nhận props đầy đủ
+    // THAY ĐỔI 2: Await props.params để lấy object params đã được giải quyết
+    const resolvedParams = await props.params;
+    const { username } = resolvedParams; // Bây giờ mới destructure username
+
+    const externalUser = await currentUser(); // Lấy người dùng hiện tại đã đăng nhập (Clerk)
+    const user = await getUserByUsername(username); // Lấy thông tin người dùng của trang profile đang xem
+
+    // Kiểm tra phân quyền và sự tồn tại của stream
+    if (
+        !user || // Người dùng của trang profile không tồn tại
+        !user.externalUserId || // Thiếu externalUserId để so sánh
+        !externalUser || // Người dùng hiện tại chưa đăng nhập
+        user.externalUserId !== externalUser.id || // Người xem không phải chủ nhân của dashboard này
+        !user.stream // Người dùng của trang profile không có stream
+    ) {
+        // Bạn có thể dùng notFound() để hiển thị trang 404 chuẩn của Next.js
+        // notFound();
+        // Hoặc throw lỗi để Next.js bắt và hiển thị trang lỗi (Error Boundary)
+        throw new Error("Unauthorized or stream not found for this user.");
     }
 
     return (
@@ -23,7 +36,10 @@ const CreatorPage = async ({
             <StreamPlayer
                 user={user}
                 stream={user.stream}
-                isFollowing
+                isFollowing // Prop này có vẻ đang thiếu giá trị động.
+                            // Bạn cần logic để xác định isFollowing, ví dụ:
+                            // const isFollowingStatus = await isFollowingUser(user.id, externalUser.id);
+                            // Và truyền isFollowing={isFollowingStatus}
             />
         </div>
     );
