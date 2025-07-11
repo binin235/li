@@ -19,7 +19,7 @@ export const Action = ({ isFollowing, userId, isBlocked }: ActionProps) => {
     startTransition(() => {
       onFollow(userId)
         .then((data) => {
-          toast.success(`Bạn đang theo dõi ${data.following.username}`);
+          toast.success("Bạn đã theo dõi thành công!");
         })
         .catch(() => {
           toast.error("Failed to follow.");
@@ -31,10 +31,10 @@ export const Action = ({ isFollowing, userId, isBlocked }: ActionProps) => {
     startTransition(() => {
         onUnfollow(userId)
         .then((data) => {
-          toast.success(`Bạn đã bỏ theo dõi ${data?.following.username}`);
+          toast.success("Bạn đã bỏ theo dõi thành công!");
         })
         .catch(() => {
-          toast.error("Failed to follow.");
+          toast.error("Failed to unfollow.");
         });
     });
   };

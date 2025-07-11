@@ -34,17 +34,22 @@
   }>) {
     return (
       <ClerkProvider>
-        <html lang="en">
+        <html lang="en" className="light" style={{ colorScheme: "light" }}>
           <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
             <header className="flex justify-end items-center p-4 gap-4 h-16">
-
+              {/* header content */}
             </header>
-            <ThemeProvider attribute={"class"} forcedTheme="light" storageKey="KittenStreamTheme">
-              <Toaster theme="light" position="bottom-center"/>
-            {children}
+            <ThemeProvider
+              attribute="class"
+              forcedTheme="light"
+              storageKey="KittenStreamTheme"
+            >
+              <Toaster theme="light" position="bottom-center" />
+              {children}
             </ThemeProvider>
           </body>
         </html>
       </ClerkProvider>
     );
   }
+  

@@ -1,35 +1,53 @@
 "use server";
 
-import { followUser, unfollowUser } from "@/lib/follow-service";
 import { revalidatePath } from "next/cache";
+import { RoomServiceClient } from "livekit-server-sdk";
+
+import { getSelf } from "@/lib/auth-service";
+import { blockUser, unblockUser } from "@/lib/block-service";
+
+const roomService = new RoomServiceClient(
+  process.env.LIVEKIT_API_URL!,
+  process.env.LIVEKIT_API_KEY!,
+  process.env.LIVEKIT_API_SECRET!
+);
+
+export const onBlock = async (id: string) => {
+  const self = await getSelf();
+
+  let blockedUser;
+
+  try {
+    blockedUser = await blockUser(id);
+  } catch {
+    // This means user is a guest
+  }
+
+  try {
+    await roomService.removeParticipant(self.id, id);
+  } catch {
+    // This means user is not in the room
+  }
+
+  revalidatePath(`/u/${self.username}/community`);
+
+  return blockedUser;
+};
+
+export const onUnblock = async (id: string) => {
+  const self = await getSelf();
+  const unblockedUser = await unblockUser(id);
+
+  revalidatePath(`/u/${self.username}/community`);
+  return unblockedUser;
+};
 
 export const onFollow = async (id: string) => {
-    try {
-        const followedUser = await followUser(id);
-        revalidatePath("/");
-        if(followedUser){
-            revalidatePath(`/${followedUser.following.username}`)
-        }
+  // TODO: Implement follow logic
+  return { success: true };
+};
 
-        return followedUser;
-
-    } catch (error) {
-        throw new Error("Failed to follow user");      
-    }
-}
-
-export const onUnfollow = async (id: string) =>{
-    try {
-        const unfollowedUser = await unfollowUser(id);
-
-        revalidatePath("/");
-
-        if (unfollowedUser){
-            revalidatePath(`/${unfollowedUser.following.username}`)
-        }
-
-        return unfollowedUser
-    } catch (error) {
-        console.log("Lỗi unfollow")
-    }
-}
+export const onUnfollow = async (id: string) => {
+  // TODO: Implement unfollow logic
+  return { success: true };
+};

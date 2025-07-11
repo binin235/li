@@ -24,7 +24,7 @@
                     <p className="text-lg font-semibold text-white">
                         Kitten Stream
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-gray-100">
                         Let's play
                     </p>
                 </div>

@@ -15,7 +15,14 @@ export const getUserByUsername = async (username: string) => {
   try {
     const user = await db.user.findUnique({
       where: { username },
-      include: { stream: true },
+      include: { 
+        stream: true,
+        _count: {
+          select: {
+            followers: true
+          }
+        }
+      },
     });
     return user;
   } catch (error) {

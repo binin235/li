@@ -1,58 +1,65 @@
+import { notFound } from "next/navigation";
 
 import { getUserByUsername } from "@/lib/user-service";
-import { notFound } from "next/navigation";
 import { isFollowingUser } from "@/lib/follow-service";
-import { Action } from "./_components/action";
 import { isBlockedByUser } from "@/lib/block-service";
 import { StreamPlayer } from "@/components/stream-player";
 
 interface UserPageProps {
-    params: Promise<{
-        username: string;
-    }>;
+  params: Promise<{
+    username: string;
+  }>;
 }
 
+const UserPage = async ({ params }: UserPageProps) => {
+  const { username } = await params;
+  const user = await getUserByUsername(username);
 
-const UserPage = async (props: UserPageProps) => {
-    // 1. Await props.params để nhận được object params thực sự
-    const resolvedParams = await props.params;
-    const { username } = resolvedParams; // Lấy username từ object đã được giải quyết
+  if (!user || !user.stream) {
+    notFound();
+  }
 
-    const user = await getUserByUsername(username);
-    if (!user) {
-        notFound();
+  const isFollowing = await isFollowingUser(user.id);
+  const isBlocked = await isBlockedByUser(user.id);
+
+  console.log("[UserPage] User data:", {
+    id: user.id,
+    username: user.username,
+    bio: user.bio,
+    followers: user._count?.followers,
+    stream: user.stream
+  });
+
+  if (isBlocked) {
+    notFound();
+  }
+
+  // Tạo user object phù hợp với CustomUser type
+  const customUser = {
+    id: user.id,
+    username: user.username || "",
+    bio: user.bio,
+    imageUrl: user.imageUrl,
+    stream: null,
+    _count: {
+      followedBy: user._count?.followers || 0
     }
+  };
 
-    const isFollowing = await isFollowingUser(user.id);
-    const isBlocked = await isBlockedByUser(user.id);
-    if(!user){
-        return notFound();
-    }
+  // Tạo stream object phù hợp với CustomStream type
+  const customStream = {
+    id: user.stream!.id,
+    isChatEnabled: user.stream!.isChatEnabled,
+    isChatDelayed: user.stream!.isChatDelayed,
+    isChatFollowersOnly: user.stream!.isChatFollowersOnly,
+    isLive: user.stream!.isLive,
+    thumbnail: user.stream!.thumbnailUrl,
+    title: user.stream!.name
+  };
 
-    if (!user.stream) {
-        return (
-            <div className="h-full flex items-center justify-center">
-                <p>This user is not currently streaming.</p>
-            </div>
-        );
-    }
-    
-    return(
-        // <div className="flex flex-col justify-center w-full h-full gap-y-4">
-        //     <p>username: {user.username}</p>
-        //     <p>id: {user.id} </p>
-        //     <p>isFollowing: {`${isFollowing}`}</p>
-        //     <p>isBlocking: {`${isBlocked}`}</p>
-        //     <Action userId={user.id} isFollowing={isFollowing} isBlocked={isBlocked}/>
-        // </div>
-        <div className="h-full">
-            <StreamPlayer
-                user={user}
-                stream={user.stream}
-                isFollowing
-            />
-        </div>
-    )
-}
+  return (
+    <StreamPlayer user={customUser} stream={customStream} isFollowing={isFollowing} />
+  );
+};
 
 export default UserPage;

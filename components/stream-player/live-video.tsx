@@ -6,6 +6,7 @@ import { useTracks} from "@livekit/components-react";
 import { FullscreenControl } from "./fullscreen-control";
 import { useEventListener } from "usehooks-ts";
 import { wrap } from "module";
+import { VolumeControl } from "./volume-control";
 
 interface LiveVideoProps {
     participant: Participant;
@@ -18,6 +19,13 @@ export const LiveVideo = ({
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [volume, setVolume] = useState(100);
+    const [muted, setMuted] = useState(false);
+
+    const handleToggleMute = () => {
+        setMuted((prev) => !prev);
+        setVolume((prev) => (prev === 0 ? 100 : 0));
+    };
 
     const togglefullscreen = () => {
         if (isFullscreen) {
@@ -50,6 +58,14 @@ export const LiveVideo = ({
             <video ref={videoRef} className="w-full h-auto object-contain rounded-md" />
             <div className="absolute top-0 h-full w-full opacity-0 hover:opacity-100 hover:transition-opacity transition duration-300">
                 <div className="absolute bottom-0 right-0 flex h-14 items-center justify-end bg-gradient-to-l from-neutral-900/80 to-transparent px-4 w-full">
+                    <VolumeControl
+                        value={muted ? 0 : volume}
+                        onChange={(v) => {
+                            setVolume(v);
+                            setMuted(v === 0);
+                        }}
+                        onToggle={handleToggleMute}
+                    />
                     <FullscreenControl
                         isFullscreen={isFullscreen}
                         onToggle={togglefullscreen}

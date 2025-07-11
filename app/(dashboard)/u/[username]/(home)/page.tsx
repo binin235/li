@@ -31,15 +31,33 @@ const CreatorPage = async (props: CreatorPageProps) => { // Nhận props đầy 
         throw new Error("Unauthorized or stream not found for this user.");
     }
 
+    // Tạo user object đúng type
+    const customUser = {
+        ...user,
+        username: user.username || "",
+        _count: {
+            followedBy: 0
+        },
+        stream: null
+    };
+
+    // Tạo stream object đúng type
+    const customStream = {
+        id: user.stream.id,
+        isChatEnabled: user.stream.isChatEnabled,
+        isChatDelayed: user.stream.isChatDelayed,
+        isChatFollowersOnly: user.stream.isChatFollowersOnly,
+        isLive: user.stream.isLive,
+        thumbnail: user.stream.thumbnailUrl,
+        title: user.stream.name
+    };
+
     return (
         <div className="h-full">
             <StreamPlayer
-                user={user}
-                stream={user.stream}
-                isFollowing // Prop này có vẻ đang thiếu giá trị động.
-                            // Bạn cần logic để xác định isFollowing, ví dụ:
-                            // const isFollowingStatus = await isFollowingUser(user.id, externalUser.id);
-                            // Và truyền isFollowing={isFollowingStatus}
+                user={customUser}
+                stream={customStream}
+                isFollowing
             />
         </div>
     );
