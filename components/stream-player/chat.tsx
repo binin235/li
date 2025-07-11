@@ -77,7 +77,7 @@ export const Chat = ({
         ...prev,
         {
           id: Date.now().toString(),
-          user: participant.identity,
+          user: msg.senderName || participant.name || participant.identity, // Ưu tiên senderName, sau đó participant.name, cuối cùng là identity
           content: msg.content,
           timestamp: Date.now(),
         },
@@ -97,7 +97,10 @@ export const Chat = ({
 
   const onSubmit = () => {
     if (!value.trim()) return;
-    const msg = JSON.stringify({ content: value });
+    const msg = JSON.stringify({ 
+      content: value,
+      senderName: viewerName  // Gửi kèm tên người gửi
+    });
     room?.localParticipant?.publishData(new TextEncoder().encode(msg), { reliable: true });
     setMessages((prev) => [
       ...prev,
