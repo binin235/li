@@ -30,19 +30,18 @@ export const ChatCommunity = ({
     setValue(newValue);
   };
 
+  // Deduplicate participants by identity
   const filteredParticipants = useMemo(() => {
-    const deduped = participants.reduce((acc, participant) => {
-      const hostAsViewer = `Host-${participant.identity}`;
-      if (!acc.some((p) => p.identity === hostAsViewer)) {
-        acc.push(participant);
+    const uniqueMap = new Map<string, RemoteParticipant | LocalParticipant>();
+    for (const participant of participants) {
+      if (!uniqueMap.has(participant.identity)) {
+        uniqueMap.set(participant.identity, participant);
       }
-      return acc;
-    }, [] as (RemoteParticipant | LocalParticipant)[]);
+    }
 
-    return deduped.filter((participant) => {
-      return participant.name
-        ?.toLowerCase()
-        .includes(debouncedValue.toLowerCase());
+    return Array.from(uniqueMap.values()).filter((participant) => {
+      const name = participant.name || participant.identity;
+      return name.toLowerCase().includes(debouncedValue.toLowerCase());
     });
   }, [participants, debouncedValue]);
 
@@ -62,19 +61,22 @@ export const ChatCommunity = ({
         className="border-white/10"
       />
       <ScrollArea className="gap-y-2 mt-4">
-        <p className="text-center text-sm text-muted-foreground hidden last:block p-2">
-          No results
-        </p>
-        {filteredParticipants.map((participant) => (
-          <CommunityItem
-            key={participant.identity}
-            hostName={hostName}
-            viewerName={viewerName}
-            participantName={participant.name}
-            participantIdentity={participant.identity}
-          />
-        ))}
+        {filteredParticipants.length === 0 ? (
+          <p className="text-center text-sm text-muted-foreground p-2">
+            No results
+          </p>
+        ) : (
+          filteredParticipants.map((participant) => (
+            <CommunityItem
+              key={participant.identity}
+              hostName={hostName}
+              viewerName={viewerName}
+              participantName={participant.name || participant.identity}
+              participantIdentity={participant.identity}
+            />
+          ))
+        )}
       </ScrollArea>
-    </div> 
+    </div>
   );
 };
