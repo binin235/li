@@ -1,6 +1,6 @@
 "use client";
 
-import { useRoomContext } from "@livekit/components-react";
+import { useRoomContext, useRemoteParticipant } from "@livekit/components-react";
 import { Room, RemoteParticipant } from "livekit-client";
 import { useEffect, useState } from "react";
 import { ArrowLeftFromLine, ArrowRightFromLine } from "lucide-react";
@@ -49,6 +49,7 @@ interface ChatProps {
   isChatEnabled: boolean;
   isChatDelayed: boolean;
   isChatFollowersOnly: boolean;
+  isLive?: boolean; // Thêm prop để kiểm tra stream có live không
 }
 
 export const Chat = ({
@@ -59,11 +60,16 @@ export const Chat = ({
   isChatEnabled,
   isChatDelayed,
   isChatFollowersOnly,
+  isLive = true, // Default true để không break existing code
 }: ChatProps) => {
   const { variant } = useChatSidebar((state) => state);
   const [value, setValue] = useState("");
   const [messages, setMessages] = useState<{ id: string; user: string; content: string; timestamp?: number }[]>([]);
   const room = useRoomContext();
+  
+  // Kiểm tra xem host có đang live không thông qua LiveKit participant
+  const hostParticipant = useRemoteParticipant(hostIdentity);
+  const isStreamLive = !!hostParticipant;
 
   useEffect(() => {
     if (!room) return;
@@ -91,6 +97,15 @@ export const Chat = ({
     return (
       <div className="flex flex-col items-center justify-center h-full p-2">
         <p className="text-muted-foreground">Chat is disabled</p>
+      </div>
+    );
+  }
+
+  if (!isStreamLive) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-2">
+        <p className="text-muted-foreground">Stream is offline</p>
+        <p className="text-sm text-muted-foreground mt-2">Chat will be available when the stream goes live</p>
       </div>
     );
   }
@@ -131,6 +146,7 @@ export const Chat = ({
             isFollowersOnly={isChatFollowersOnly}
             isFollowing={isFollowing}
             isDelayed={isChatDelayed}
+            isStreamLive={isStreamLive}
           />
         </>
       )}

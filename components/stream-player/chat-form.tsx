@@ -17,6 +17,7 @@ interface ChatFormProps {
   isFollowersOnly: boolean;
   isFollowing: boolean;
   isDelayed: boolean;
+  isStreamLive?: boolean; // Thêm prop để kiểm tra stream live
 }
 
 export const ChatForm = ({
@@ -27,12 +28,13 @@ export const ChatForm = ({
   isFollowersOnly,
   isFollowing,
   isDelayed,
+  isStreamLive = true, // Default true để không break existing code
 }: ChatFormProps) => {
   const [isDelayBlocked, setIsDelayBlocked] = useState(false);
 
   const isFollowersOnlyAndNotFollowing = isFollowersOnly && !isFollowing;
   const isDisabled =
-    isHidden || isDelayBlocked || isFollowersOnlyAndNotFollowing;
+    isHidden || isDelayBlocked || isFollowersOnlyAndNotFollowing || !isStreamLive; // Thêm kiểm tra stream live
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -66,7 +68,13 @@ export const ChatForm = ({
           onChange={(e) => onChange(e.target.value)}
           value={value}
           disabled={isDisabled}
-          placeholder="Send a message"
+          placeholder={
+            !isStreamLive 
+              ? "Stream is offline..." 
+              : isFollowersOnlyAndNotFollowing 
+                ? "Follow to chat..." 
+                : "Send a message"
+          }
           className={cn(
             "border-white/10",
             (isFollowersOnly || isDelayed) && "rounded-t-none border-t-0"
